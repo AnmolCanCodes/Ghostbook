@@ -1,0 +1,21 @@
+# Web framework
+fastapi>=0.115
+uvicorn[standard]>=0.30
+
+# Config and validation
+pydantic>=2.8
+pydantic-settings>=2.4
+email-validator>=2.2
+
+# Database
+sqlalchemy>=2.0
+
+# Encryption (scrypt key derivation + Fernet authenticated encryption)
+cryptography>=43.0
+
+# LLM client (OpenAI-compatible: works with Ollama, Groq, and Google AI Studio)
+openai>=1.50
+
+# Testing
+pytest>=8.0
+httpx>=0.27
