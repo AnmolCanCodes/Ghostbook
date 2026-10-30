@@ -1,0 +1,1 @@
+"""Ghostbook backend package."""
