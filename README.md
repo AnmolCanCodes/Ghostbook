@@ -161,7 +161,7 @@ ghost-accounts/
 
 - Python 3.11+
 - Node 18+
-- An API key from [Groq](https://console.groq.com/keys) or [Google AI Studio](https://aistudio.google.com/), or Ollama installed for local mode
+- An API key from [Google AI Studio](https://aistudio.google.com/) (recommended for Hacktoberfest) or [Groq](https://console.groq.com/keys), or Ollama installed for local mode
 
 ### 1. Configure
 
@@ -173,10 +173,12 @@ Open `.env` and set at least:
 
 ```
 LLM_MODE=cloud
-CLOUD_PROVIDER=groq
-GROQ_API_KEY=your_key_here
-GROQ_MODEL=<a Gemma model ID that Groq currently serves>
+CLOUD_PROVIDER=google
+GOOGLE_API_KEY=your_key_here
+GOOGLE_MODEL=gemma-4-31b-it
 ```
+
+**Note:** For Hacktoberfest Week 4, use Google AI Studio with Gemma models (e.g., `gemma-4-31b-it`) to meet the challenge requirements.
 
 ### 2. Run the backend
 
@@ -205,6 +207,37 @@ Open http://localhost:5173, create your master passphrase, and add your first ac
 ```bash
 cd backend
 pytest
+```
+
+### 5. Database management
+
+The project uses SQLite with encrypted fields. The database file is located at `backend/ghostbook.db`.
+
+To manage the database directly:
+
+```bash
+# Navigate to backend directory
+cd backend
+
+# Open SQLite command line
+sqlite3 ghostbook.db
+
+# Useful SQLite commands:
+.tables                    # List all tables
+.schema                    # Show table schemas
+SELECT * FROM accounts;    # View accounts (encrypted values)
+SELECT * FROM vault_meta;  # View vault metadata
+.quit                      # Exit SQLite
+```
+
+**Note:** Account fields are encrypted with Fernet, so direct queries will show ciphertext. Use the API endpoints to work with decrypted data.
+
+To reset the database (delete all data):
+
+```bash
+cd backend
+rm ghostbook.db
+# The database will be recreated automatically on next server start
 ```
 
 ## Configuration

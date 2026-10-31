@@ -8,6 +8,7 @@ from dataclasses import dataclass
 from functools import lru_cache
 from typing import Literal, Protocol, TypeVar
 
+import httpx
 import openai
 from openai import AsyncOpenAI
 from pydantic import BaseModel
@@ -18,7 +19,7 @@ from app.schemas import AIStatus, Destination
 
 logger = logging.getLogger("ghostbook.llm")
 
-ProviderName = Literal["local", "groq", "google"]
+ProviderName = Literal["local", "groq", "google", "huggingface"]
 Message = dict[str, str]
 BuildMessages = Callable[[Destination], list[Message]]
 T = TypeVar("T", bound=BaseModel)
@@ -64,6 +65,8 @@ def provider_spec(settings: Settings, name: ProviderName) -> ProviderSpec:
         return ProviderSpec("local", settings.LOCAL_BASE_URL, settings.LOCAL_API_KEY, settings.LOCAL_MODEL)
     if name == "groq":
         return ProviderSpec("groq", settings.GROQ_BASE_URL, settings.GROQ_API_KEY, settings.GROQ_MODEL)
+    if name == "huggingface":
+        return ProviderSpec("huggingface", settings.HF_BASE_URL, settings.HF_TOKEN, settings.HF_MODEL)
     return ProviderSpec("google", settings.GOOGLE_BASE_URL, settings.GOOGLE_API_KEY, settings.GOOGLE_MODEL)
 
 
@@ -119,6 +122,8 @@ class OpenAICompatClient:
     def __init__(self, spec: ProviderSpec, settings: Settings) -> None:
         self._spec = spec
         self._settings = settings
+        # Google AI uses x-goog-api-key header instead of Authorization
+        
         self._client = _sdk_client(spec.base_url, spec.api_key, settings.LLM_TIMEOUT_SECONDS)
 
     async def complete(self, messages: list[Message]) -> str:
@@ -129,6 +134,42 @@ class OpenAICompatClient:
             max_tokens=self._settings.LLM_MAX_TOKENS,
         )
         return response.choices[0].message.content or ""
+
+
+class HuggingFaceClient:
+    """Hugging Face Inference API client (text generation)."""
+
+    def __init__(self, spec: ProviderSpec, settings: Settings) -> None:
+        self._spec = spec
+        self._settings = settings
+        self._client = httpx.AsyncClient(
+            timeout=settings.LLM_TIMEOUT_SECONDS,
+            headers={"Authorization": f"Bearer {spec.api_key}"}
+        )
+
+    async def complete(self, messages: list[Message]) -> str:
+        # Convert messages to a single prompt for text generation
+        prompt = "\n".join([f"{m['role']}: {m['content']}" for m in messages])
+
+        response = await self._client.post(
+            f"https://api-inference.huggingface.co/models/{self._spec.model}",
+            json={
+                "inputs": prompt,
+                "parameters": {
+                    "max_new_tokens": self._settings.LLM_MAX_TOKENS,
+                    "temperature": self._settings.LLM_TEMPERATURE,
+                    "return_full_text": False,
+                }
+            }
+        )
+        response.raise_for_status()
+        result = response.json()
+        # Handle different response formats
+        if isinstance(result, list) and len(result) > 0:
+            return result[0].get("generated_text", "")
+        elif isinstance(result, dict):
+            return result.get("generated_text", "")
+        return str(result)
 
 
 def _should_fall_back(exc: Exception) -> bool:
@@ -168,7 +209,13 @@ class LLMService:
         client_factory: Callable[[ProviderSpec], CompletionClient] | None = None,
     ) -> None:
         self._settings = settings
-        self._factory = client_factory or (lambda spec: OpenAICompatClient(spec, settings))
+        if client_factory:
+            self._factory = client_factory
+        else:
+            self._factory = lambda spec: (
+                HuggingFaceClient(spec, settings) if spec.name == "huggingface"
+                else OpenAICompatClient(spec, settings)
+            )
 
     async def complete_text(self, build_messages: BuildMessages) -> tuple[str, ProviderName]:
         """Return (text, provider_name). Messages are rebuilt per provider attempt."""
