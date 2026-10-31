@@ -1,0 +1,83 @@
+/* Design tokens. A card catalog after hours: paper tones, hairlines, one candle. */
+
+:root {
+  color-scheme: dark;
+
+  /* Paper and ink */
+  --night: #12110f;
+  --paper: #1a1814;
+  --paper-raised: #221f1a;
+  --rule: #3a352c;
+  --rule-soft: #2b2822;
+
+  --bone: #e8e1cf;
+  --muted: #9a937f;
+
+  --candle: #e2a64a;
+  --candle-ink: #12110f;
+  --spectre: #cfe3d8;
+  --spectre-line: #7d9387;
+  --wax: #c4553d;
+  --wax-ink: #e27a62;
+  --moss: #8fb58a;
+
+  /* Staleness ink: solid colours, all at least 4.5:1 on paper and paper-raised */
+  --ink-fresh: var(--bone);
+  --ink-aging: #cbc4b0;
+  --ink-ghost: #a39c88;
+
+  /* Typography */
+  --font-display: "Newsreader Variable", "Newsreader", Georgia, "Times New Roman", serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+
+  --fs-micro: 0.72rem;
+  --fs-small: 0.8125rem;
+  --fs-body: 1.0625rem;
+  --fs-lead: 1.25rem;
+  --fs-h3: 1.5rem;
+  --fs-h2: 2.125rem;
+  --fs-h1: clamp(2.5rem, 7vw, 3.75rem);
+  --fs-score: clamp(5rem, 14vw, 8rem);
+
+  --lh-serif: 1.6;
+  --lh-tight: 1.1;
+  --lh-mono: 1.4;
+  --tracking-label: 0.14em;
+
+  /* Spacing */
+  --s-1: 0.25rem;
+  --s-2: 0.5rem;
+  --s-3: 0.75rem;
+  --s-4: 1rem;
+  --s-5: 1.5rem;
+  --s-6: 2rem;
+  --s-7: 3rem;
+  --s-8: 4.5rem;
+
+  /* Shape */
+  --radius: 2px;
+  --hairline: 1px solid var(--rule);
+  --tap: 2.75rem;
+
+  /* Layout */
+  --rail-w: 15.5rem;
+  --main-max: 66rem;
+  --bar-h: 3.5rem;
+  --tabs-h: 3.5rem;
+
+  /* Motion */
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --dur-fast: 120ms;
+  --dur: 200ms;
+  --dur-slow: 420ms;
+
+  /* Layers */
+  --z-rail: 20;
+  --z-bar: 30;
+  --z-modal: 50;
+  --z-toast: 60;
+  --z-grain: 900;
+
+  /* Paper grain, inline so the app makes no image requests */
+  --grain: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.91  0 0 0 0 0.88  0 0 0 0 0.81  0 0 0 0.6 -0.15'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+}
