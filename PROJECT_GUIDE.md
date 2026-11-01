@@ -575,3 +575,36 @@ This is a personal project built for Hacktoberfest 2026. Contributions are welco
 ## License
 
 MIT License - See LICENSE file for details.
+
+
+
+
+
+
+The project uses SQLite with encrypted fields. The database file is located at `backend/ghostbook.db`.
+
+To manage the database directly:
+
+```bash
+# Navigate to backend directory
+cd backend
+
+# Open SQLite command line
+sqlite3 ghostbook.db
+
+# Useful SQLite commands:
+.tables                    # List all tables
+.schema                    # Show table schemas
+SELECT * FROM accounts;    # View accounts (encrypted values)
+SELECT * FROM vault_meta;  # View vault metadata
+.quit                      # Exit SQLite
+```
+
+**Note:** Account fields are encrypted with Fernet, so direct queries will show ciphertext. Use the API endpoints to work with decrypted data.
+
+To reset the database (delete all data):
+
+```bash
+cd backend
+rm ghostbook.db
+# The database will be recreated automatically on next server start

@@ -1,6 +1,6 @@
 const CAPTIONS = {
   local: "Prompts stay on this machine.",
-  cloud: "Prompts go to a cloud model, with passwords, codes and card numbers masked first.",
+  cloud: "",
   hybrid: "Tries your local model first, and falls back to the cloud with secrets masked.",
   off: "No AI in this setup. Nothing leaves this machine.",
 };

@@ -108,7 +108,7 @@ def log_configuration_warnings(settings: Settings) -> None:
     """Warn (never crash) when a selected provider is incomplete."""
     for spec in provider_chain(settings):
         if not spec.configured:
-            logger.warning("AI provider '%s' is selected but its key or model is not set.", spec.name)
+                logger.warning("AI provider '%s' is selected but its key or model is not set.", spec.name)
 
 
 @lru_cache(maxsize=8)
@@ -122,8 +122,6 @@ class OpenAICompatClient:
     def __init__(self, spec: ProviderSpec, settings: Settings) -> None:
         self._spec = spec
         self._settings = settings
-        # Google AI uses x-goog-api-key header instead of Authorization
-        
         self._client = _sdk_client(spec.base_url, spec.api_key, settings.LLM_TIMEOUT_SECONDS)
 
     async def complete(self, messages: list[Message]) -> str:
@@ -212,10 +210,7 @@ class LLMService:
         if client_factory:
             self._factory = client_factory
         else:
-            self._factory = lambda spec: (
-                HuggingFaceClient(spec, settings) if spec.name == "huggingface"
-                else OpenAICompatClient(spec, settings)
-            )
+            self._factory = lambda spec: OpenAICompatClient(spec, settings)
 
     async def complete_text(self, build_messages: BuildMessages) -> tuple[str, ProviderName]:
         """Return (text, provider_name). Messages are rebuilt per provider attempt."""
@@ -232,9 +227,10 @@ class LLMService:
                 text = await self._factory(spec).complete(messages)
             except openai.OpenAIError as exc:
                 logger.warning(
-                    "llm provider=%s ok=false duration_ms=%d error=%s",
+                    "llm provider=%s ok=false duration_ms=%d error=%s status=%s detail=%s",
                     spec.name, int((time.monotonic() - started) * 1000), type(exc).__name__,
-                )
+                    getattr(exc, "status_code", None), getattr(exc, "message", str(exc)),
+                    )
                 if not is_last and _should_fall_back(exc):
                     continue
                 raise _to_unavailable(exc) from exc

@@ -17,3 +17,5 @@ frontend/dist/
 .DS_Store
 .idea/
 .vscode/
+
+PROJECT_GUIDE.md
